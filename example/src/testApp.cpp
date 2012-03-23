@@ -187,23 +187,35 @@ void testApp::drawPointCloud() {
 }
 //--------------------------------------------------------------
 void testApp::drawPoses() {
-    ofPushMatrix();
+//    ofPushMatrix();
 	// the projected points are 'upside down' and 'backwards'
-	ofScale(1, -1, -1);
-	ofTranslate(0, 0, -1000); // center the points a bit
-    ofSetColor(0,0,255);
-    glLineWidth(3);
+//	ofScale(1, -1, -1);
+//	ofTranslate(0, 0, -1000); // center the points a bit
+//    ofSetColor(0,0,255);
+//    glLineWidth(3);
     if(g_means.size()>0) {
             for(unsigned int i=0;i<g_means.size();++i){
                 ofVec3f pos = ofVec3f(g_means[i][0], g_means[i][1], g_means[i][2]);
                 ofVec3f dir = ofVec3f(0,0,-150);
                 dir.rotate(g_means[i][3], g_means[i][4], g_means[i][5]);
                 dir += pos;
-                ofLine(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z);
-                printf("pos.x%d pos.y%d  pos.z%d dir.x%d dir.y%d dir.z%d\n", pos.x, pos.y, pos.z, dir.x, dir.y, dir.z);
+//                ofLine(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z);
+                int posX = (int) pos.x;
+                int posY = (int) pos.y;
+                int posZ = (int) pos.z;
+                int dirX = (int) dir.x;
+                int dirY = (int) dir.y;
+                int dirZ = (int) dir.z;
+
+
+                
+   //               float dd = float(dd);
+//               float dd =  ofNormalize(pos.x, -1, 1);
+                printf("posX%d  posY%d  posZ%d\n dirX%d  dirY%d dirZ%d\n", posX, posY, posZ, dirX, dirY, dirZ);
+//                printf("diff x%d dif y %d  dif z%d\n", abs(pos.x)-abs(dir.x), abs(pos.y)-abs(dir.y), abs(pos.z)-abs(dir.z));
             }
         }
-	ofPopMatrix();
+//	ofPopMatrix();
 }
 //--------------------------------------------------------------
 void testApp::drawReport() {
@@ -219,25 +231,25 @@ void testApp::draw(){
     
     // translate(variables)
     // rotate(variables
-    
+    ofPushMatrix();    
+
     ofTranslate(ofGetWindowHeight()/2, ofGetWindowWidth()/2, -500);
     
     ofRotateX(rotateXvalue);
     ofRotateY(rotateYvalue);
-
-    
     ofRotateZ(rotateZvalue);
     
-    ofPushMatrix();    
 //    easyCam.begin();
     if (bDrawCloud) {
-        drawPointCloud();
+//        drawPointCloud();
         drawPoses();
     }
 //    easyCam.end();
-    ofPopMatrix();
 
+    ofPopMatrix();
     drawReport();
+
+
 }
 
 //--------------------------------------------------------------
