@@ -3,6 +3,8 @@
 #include "ofMain.h"
 #include "ofxKinect.h"
 #include "ofxHeadPoseEstimator.h"
+#include "ofxGrabCam.h"
+
 
 class testApp : public ofBaseApp{
 

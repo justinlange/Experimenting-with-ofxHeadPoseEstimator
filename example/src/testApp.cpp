@@ -61,12 +61,20 @@ int rotateXvalue = 0;
 int rotateYvalue = 0;
 int rotateZvalue = 180;
 
-int posX = 0;
-int posY = 0;
-int posZ = 0;
-int dirX = 0;
-int dirY = 0;
-int dirZ = 0;
+float posX = 0;
+float posY = 0;
+float posZ = 0;
+float dirX = 0;
+float dirY = 0;
+float dirZ = 0;
+
+float angleDistanceFactor = 1;
+int angleDistanceAdjuster = 1;
+float translateDistanceFactor = 1;
+int translateDistanceAdjuster = 10;
+int translateDistanceAdjusterMin = 10;
+int translateDistanceAdjusterMax = 10;
+
 
 
 //--------------------------------------------------------------
@@ -113,6 +121,9 @@ void testApp::setupEstimator() {
 //--------------------------------------------------------------
 void testApp::update(){
     kinect.update();
+    
+    printf("angleDistanceAdjuster: %d\n translateDistanceAdjuster: %d\n", angleDistanceAdjuster, translateDistanceAdjuster);
+    
     if (kinect.isFrameNew()) {
         calcAvgFPS();
         updateCloud();
@@ -185,7 +196,7 @@ void testApp::drawPointCloud() {
 	ofPushMatrix();
 	glPointSize(3);
 	// the projected points are 'upside down' and 'backwards'
-	ofScale(1, -1, -1);
+	ofScale(1.5, -1.5, -1.5);
 	ofTranslate(0, 0, -1000); // center the points a bit
 	glEnable(GL_DEPTH_TEST);
 	mesh.drawVertices();
@@ -218,7 +229,7 @@ void testApp::drawPoses() {
                 
    //               float dd = float(dd);
 //               float dd =  ofNormalize(pos.x, -1, 1);
-                printf("posX%d  posY%d  posZ%d\n dirX%d  dirY%d dirZ%d\n", posX, posY, posZ, dirX, dirY, dirZ);
+//                printf("posX%d  posY%d  posZ%d\n dirX%d  dirY%d dirZ%d\n", posX, posY, posZ, dirX, dirY, dirZ);
 //                printf("diff x%d dif y %d  dif z%d\n", abs(pos.x)-abs(dir.x), abs(pos.y)-abs(dir.y), abs(pos.z)-abs(dir.z));
             }
         }
@@ -229,7 +240,7 @@ void testApp::drawReport() {
     ofPushMatrix();
     ofSetColor(0);
     char reportStr[1024];
-    sprintf(reportStr, "framecount: %i   FPS: %.2f", frameCount, kFPS);
+    sprintf(reportStr, "framecount: %i   FPS: %.2f \n angleDistanceAdjuster: %d \n translateDistanceFactorMin: %d \n translateDistanceFactorMax: %d \n ", frameCount, kFPS, angleDistanceAdjuster, translateDistanceAdjusterMin, translateDistanceAdjusterMax);
     ofDrawBitmapString(reportStr, 10, 10);
     ofPopMatrix();
 }
@@ -238,14 +249,26 @@ void testApp::draw(){
     
     // translate(variables)
     // rotate(variables
-    ofRotateX(rotateXvalue);
-    ofRotateY(posX/5);
-    ofRotateZ(rotateZvalue);
+   
     
     ofPushMatrix();    
+    angleDistanceFactor = int(abs(posZ)/angleDistanceAdjuster); // should yield values between 40 and 200
+//    translateDistanceFactor = int(posZ/translateDistanceAdjuster);
+    translateDistanceFactor =  ofMap(posZ, 400, 3000, (1/translateDistanceAdjusterMin), (1*translateDistanceAdjusterMax));
 
-    ofTranslate(ofGetWindowHeight()/2, ofGetWindowWidth()/2);
+   
     
+    //for a big distance, we want less translation....
+    //that means, we want posX to have less of an effect.
+    //so bigger posZ must make posX smaller
+    
+    ofTranslate((ofGetWindowWidth()/2-(posX*translateDistanceFactor)), (ofGetWindowHeight()/2));
+
+    
+//    ofTranslate((ofGetWindowWidth()/2-(posX*translateDistanceFactor)), (ofGetWindowHeight()/2-(posY/translateDistanceFactor)));
+    ofRotateX(rotateXvalue);
+    ofRotateY(posX/angleDistanceFactor);
+    ofRotateZ(rotateZvalue);
    
     
 //    easyCam.begin();
@@ -273,6 +296,18 @@ void testApp::keyPressed(int key){
         case 'y': rotateYvalue+=10; break;
             
         case 'z': rotateZvalue+=10; break;
+            
+        case 't': translateDistanceAdjusterMin++; break;
+            
+        case 'g': translateDistanceAdjusterMin--; break;
+            
+        case 'r': translateDistanceAdjusterMax++; break;
+       
+        case 'f': translateDistanceAdjusterMax--; break;
+
+
+
+            
 
 
     }
