@@ -61,6 +61,13 @@ int rotateXvalue = 0;
 int rotateYvalue = 0;
 int rotateZvalue = 180;
 
+int posX = 0;
+int posY = 0;
+int posZ = 0;
+int dirX = 0;
+int dirY = 0;
+int dirZ = 0;
+
 
 //--------------------------------------------------------------
 void testApp::setup(){
@@ -200,12 +207,12 @@ void testApp::drawPoses() {
                 dir.rotate(g_means[i][3], g_means[i][4], g_means[i][5]);
                 dir += pos;
 //                ofLine(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z);
-                int posX = (int) pos.x;
-                int posY = (int) pos.y;
-                int posZ = (int) pos.z;
-                int dirX = (int) dir.x;
-                int dirY = (int) dir.y;
-                int dirZ = (int) dir.z;
+                posX = (int) pos.x;
+                posY = (int) pos.y;
+                posZ = (int) pos.z;
+                dirX = (int) dir.x;
+                dirY = (int) dir.y;
+                dirZ = (int) dir.z;
 
 
                 
@@ -231,17 +238,19 @@ void testApp::draw(){
     
     // translate(variables)
     // rotate(variables
+    ofRotateX(rotateXvalue);
+    ofRotateY(posX/5);
+    ofRotateZ(rotateZvalue);
+    
     ofPushMatrix();    
 
-    ofTranslate(ofGetWindowHeight()/2, ofGetWindowWidth()/2, -500);
+    ofTranslate(ofGetWindowHeight()/2, ofGetWindowWidth()/2);
     
-    ofRotateX(rotateXvalue);
-    ofRotateY(rotateYvalue);
-    ofRotateZ(rotateZvalue);
+   
     
 //    easyCam.begin();
     if (bDrawCloud) {
-//        drawPointCloud();
+        drawPointCloud();
         drawPoses();
     }
 //    easyCam.end();
