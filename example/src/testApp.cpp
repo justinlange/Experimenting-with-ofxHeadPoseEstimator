@@ -68,12 +68,8 @@ float dirX = 0;
 float dirY = 0;
 float dirZ = 0;
 
-float angleDistanceFactor = 1;
-int angleDistanceAdjuster = 1;
-float translateDistanceFactor = 1;
-int translateDistanceAdjuster = 10;
-int translateDistanceAdjusterMin = 10;
-int translateDistanceAdjusterMax = 10;
+float eyePoint = 500;
+int defaultVar = 0;
 
 
 
@@ -122,7 +118,6 @@ void testApp::setupEstimator() {
 void testApp::update(){
     kinect.update();
     
-    printf("angleDistanceAdjuster: %d\n translateDistanceAdjuster: %d\n", angleDistanceAdjuster, translateDistanceAdjuster);
     
     if (kinect.isFrameNew()) {
         calcAvgFPS();
@@ -196,7 +191,7 @@ void testApp::drawPointCloud() {
 	ofPushMatrix();
 	glPointSize(3);
 	// the projected points are 'upside down' and 'backwards'
-	ofScale(1.5, -1.5, -1.5);
+	ofScale(1.5, 1.5, -1.5);
 	ofTranslate(0, 0, -1000); // center the points a bit
 	glEnable(GL_DEPTH_TEST);
 	mesh.drawVertices();
@@ -205,19 +200,20 @@ void testApp::drawPointCloud() {
 }
 //--------------------------------------------------------------
 void testApp::drawPoses() {
-//    ofPushMatrix();
-	// the projected points are 'upside down' and 'backwards'
-//	ofScale(1, -1, -1);
-//	ofTranslate(0, 0, -1000); // center the points a bit
-//    ofSetColor(0,0,255);
-//    glLineWidth(3);
+   ofPushMatrix();
+// the projected points are 'upside down' and 'backwards'
+	ofScale(1, 1, -1);	
+    ofTranslate(0, 0, -1000); // center the points a bit
+    ofSetColor(0,0,255);
+    glLineWidth(3);
+   
     if(g_means.size()>0) {
             for(unsigned int i=0;i<g_means.size();++i){
                 ofVec3f pos = ofVec3f(g_means[i][0], g_means[i][1], g_means[i][2]);
                 ofVec3f dir = ofVec3f(0,0,-150);
                 dir.rotate(g_means[i][3], g_means[i][4], g_means[i][5]);
                 dir += pos;
-//                ofLine(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z);
+                ofLine(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z);
                 posX = (int) pos.x;
                 posY = (int) pos.y;
                 posZ = (int) pos.z;
@@ -229,31 +225,35 @@ void testApp::drawPoses() {
                 
    //               float dd = float(dd);
 //               float dd =  ofNormalize(pos.x, -1, 1);
-//                printf("posX%d  posY%d  posZ%d\n dirX%d  dirY%d dirZ%d\n", posX, posY, posZ, dirX, dirY, dirZ);
+                printf("posX%d  posY%d  posZ%d\n dirX%d  dirY%d dirZ%d\n", posX, posY, posZ, dirX, dirY, dirZ);
 //                printf("diff x%d dif y %d  dif z%d\n", abs(pos.x)-abs(dir.x), abs(pos.y)-abs(dir.y), abs(pos.z)-abs(dir.z));
             }
         }
-//	ofPopMatrix();
+	ofPopMatrix();
 }
 //--------------------------------------------------------------
 void testApp::drawReport() {
     ofPushMatrix();
     ofSetColor(0);
     char reportStr[1024];
-    sprintf(reportStr, "framecount: %i   FPS: %.2f \n angleDistanceAdjuster: %d \n translateDistanceFactorMin: %d \n translateDistanceFactorMax: %d \n ", frameCount, kFPS, angleDistanceAdjuster, translateDistanceAdjusterMin, translateDistanceAdjusterMax);
     ofDrawBitmapString(reportStr, 10, 10);
     ofPopMatrix();
 }
 //--------------------------------------------------------------
 void testApp::draw(){
     
-    // translate(variables)
-    // rotate(variables
-   
     
-    ofPushMatrix();    
-    angleDistanceFactor = int(abs(posZ)/angleDistanceAdjuster); // should yield values between 40 and 200
-//    translateDistanceFactor = int(posZ/translateDistanceAdjuster);
+    
+    ofTranslate(ofGetWindowWidth()/2,ofGetWindowHeight()/2, -eyePoint);
+    ofTranslate(0,0,eyePoint); //translates to the eyePoint
+    ofRotateY(mouseY/(0.5*PI));
+    ofScale(1,1,eyePoint/mouseX);
+    ofTranslate(0,0,-eyePoint); //translates back to the default
+ 
+    
+    /* angleDistanceFactor = int(abs(posZ)/angleDistanceAdjuster); 
+    // should yield values between 40 and 200
+    //  translateDistanceFactor = int(posZ/translateDistanceAdjuster);
     translateDistanceFactor =  ofMap(posZ, 400, 3000, (1/translateDistanceAdjusterMin), (1*translateDistanceAdjusterMax));
 
    
@@ -266,21 +266,19 @@ void testApp::draw(){
 
     
 //    ofTranslate((ofGetWindowWidth()/2-(posX*translateDistanceFactor)), (ofGetWindowHeight()/2-(posY/translateDistanceFactor)));
-    ofRotateX(rotateXvalue);
+    ofRotateX(posY/angleDistanceFactor);
     ofRotateY(posX/angleDistanceFactor);
     ofRotateZ(rotateZvalue);
+     */
    
     
-//    easyCam.begin();
     if (bDrawCloud) {
         drawPointCloud();
         drawPoses();
     }
-//    easyCam.end();
 
-    ofPopMatrix();
     drawReport();
-
+    //transltae back from eye perspective
 
 }
 
@@ -297,13 +295,20 @@ void testApp::keyPressed(int key){
             
         case 'z': rotateZvalue+=10; break;
             
-        case 't': translateDistanceAdjusterMin++; break;
+        case 't': defaultVar++; break;
             
-        case 'g': translateDistanceAdjusterMin--; break;
+        case 'g': defaultVar--; break;
             
-        case 'r': translateDistanceAdjusterMax++; break;
+        case 'r': defaultVar++; break;
        
-        case 'f': translateDistanceAdjusterMax--; break;
+        case 'f': defaultVar--; break;
+            
+        case 'h': defaultVar--; break;
+        
+        case 'j': defaultVar++; break;
+
+            
+
 
 
 
