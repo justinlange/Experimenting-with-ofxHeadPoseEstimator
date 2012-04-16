@@ -98,7 +98,8 @@ void testApp::setup(){
 	kinect.setRegistration(true);
     kinect.init();
     kinect.open();
-    kinect.setDepthClipping(500,g_max_z);
+    kinect.setDepthClipping(250,g_max_z);
+
     // setup the estimator
     setupEstimator();
 }
@@ -215,6 +216,8 @@ void testApp::drawPointCloud() {
 	glDisable(GL_DEPTH_TEST);
 	ofPopMatrix();
 }
+
+
 //--------------------------------------------------------------
 void testApp::drawPoses() {
    ofPushMatrix();
@@ -284,58 +287,29 @@ void testApp::drawReport() {
 //--------------------------------------------------------------
 void testApp::draw(){
     
-    
-    
     ofTranslate(ofGetWindowWidth()/2,ofGetWindowHeight()/2, -PZ); //centers everything
     
-    /* we basically need a container for the translation -- translate to the head origin point, and then inside, perform the perspective translations
-    */ 
+    /* we basically need a container for the translation -- translate to the head origin point, and then inside, perform the perspective translations */ 
     
     int translateZ = mouseX;
     
-//    ofTranslate(0,0,mouseX); //translates to the eyePoint -- needs to be positive
-    
-    
     ofTranslate(0,0,smoothPZ);
-    
     ofRotateY(smoothDiffX/3*PI);
     ofRotateX(smoothDiffY/3*PI);
     
-//    ofRotateY(mouseY/(0.5*PI));
 //    ofScale(1,1,sqrt(float(ofGetWindowWidth()/2)/mouseX));
     
     ofTranslate(0,0,-smoothPZ); //translates back to the default
- 
-    
-    /* angleDistanceFactor = int(abs(posZ)/angleDistanceAdjuster); 
-    // should yield values between 40 and 200
-    //  translateDistanceFactor = int(posZ/translateDistanceAdjuster);
-    translateDistanceFactor =  ofMap(posZ, 400, 3000, (1/translateDistanceAdjusterMin), (1*translateDistanceAdjusterMax));
-
-   
-    
-    //for a big distance, we want less translation....
-    //that means, we want posX to have less of an effect.
-    //so bigger posZ must make posX smaller
-    
-    ofTranslate((ofGetWindowWidth()/2-(posX*translateDistanceFactor)), (ofGetWindowHeight()/2));
-
-    
-//    ofTranslate((ofGetWindowWidth()/2-(posX*translateDistanceFactor)), (ofGetWindowHeight()/2-(posY/translateDistanceFactor)));
-    ofRotateX(posY/angleDistanceFactor);
-    ofRotateY(posX/angleDistanceFactor);
-    ofRotateZ(rotateZvalue);
-     */
-   
     
     if (bDrawCloud) {
+//        ofPushMatrix();
+//        ofScale(1,.5);
         drawPointCloud();
+//        ofPopMatrix();
+        
         drawPoses();
     }
-
     drawReport();
-    //transltae back from eye perspective
-
 }
 
 //--------------------------------------------------------------

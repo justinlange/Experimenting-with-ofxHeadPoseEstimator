@@ -3,7 +3,7 @@
 #include "ofMain.h"
 #include "ofxKinect.h"
 #include "ofxHeadPoseEstimator.h"
-#include "ofxGrabCam.h"
+//#include "ofxGrabCam.h"
 
 
 class testApp : public ofBaseApp{
@@ -33,5 +33,5 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 		//-----------------------
 		ofxKinect kinect;
-		ofEasyCam easyCam;
+//		ofEasyCam easyCam;
 };
