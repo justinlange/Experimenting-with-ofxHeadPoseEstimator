@@ -61,12 +61,12 @@ int rotateXvalue = 0;
 int rotateYvalue = 0;
 int rotateZvalue = 180;
 
-float posX = 0;
-float posY = 0;
-float posZ = 0;
-float dirX = 0;
-float dirY = 0;
-float dirZ = 0;
+//float posX = 0;
+//float posY = 0;
+//float posZ = 0;
+//float dirX = 0;
+//float dirY = 0;
+//float dirZ = 0;
 
 float eyePoint = 500;
 int defaultVar = 0;
@@ -214,12 +214,12 @@ void testApp::drawPoses() {
                 dir.rotate(g_means[i][3], g_means[i][4], g_means[i][5]);
                 dir += pos;
                 ofLine(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z);
-                posX = (int) pos.x;
-                posY = (int) pos.y;
-                posZ = (int) pos.z;
-                dirX = (int) dir.x;
-                dirY = (int) dir.y;
-                dirZ = (int) dir.z;
+                int posX = int(pos.x);
+                int posY = int(pos.y);
+                int posZ = int(pos.z);
+                int dirX = int(dir.x);
+                int dirY = int(dir.y);
+                int dirZ = int(dir.z);
 
 
                 
@@ -244,11 +244,22 @@ void testApp::draw(){
     
     
     
-    ofTranslate(ofGetWindowWidth()/2,ofGetWindowHeight()/2, -eyePoint);
-    ofTranslate(0,0,eyePoint); //translates to the eyePoint
+    ofTranslate(ofGetWindowWidth()/2,ofGetWindowHeight()/2, -1000);
+    
+    /* we basically need a container for the translation -- translate to the head origin point, and then inside, perform the perspective translations
+    */ 
+    
+    
+    ofTranslate(0,0,mouseX); //translates to the eyePoint -- needs to be positive
+    
+    
+    
     ofRotateY(mouseY/(0.5*PI));
-    ofScale(1,1,eyePoint/mouseX);
-    ofTranslate(0,0,-eyePoint); //translates back to the default
+//    ofScale(1,1,sqrt(float(ofGetWindowWidth()/2)/mouseX));
+    
+    //we need to double scale Z as the translate Z distance doubles 
+    
+    ofTranslate(0,0,-mouseX); //translates back to the default
  
     
     /* angleDistanceFactor = int(abs(posZ)/angleDistanceAdjuster); 
