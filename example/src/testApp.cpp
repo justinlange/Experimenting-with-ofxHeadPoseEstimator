@@ -61,6 +61,23 @@ int rotateXvalue = 0;
 int rotateYvalue = 0;
 int rotateZvalue = 180;
 
+int PX;
+int PY;
+int PZ;
+int DX;
+int DY;
+int DZ;
+int diffX;
+int diffY;
+
+float smoothPZ;
+
+float smoothDiffX;
+float smoothDiffY;
+
+float smoothValue = 0.05;
+
+
 //float posX = 0;
 //float posY = 0;
 //float posZ = 0;
@@ -220,12 +237,37 @@ void testApp::drawPoses() {
                 int dirX = int(dir.x);
                 int dirY = int(dir.y);
                 int dirZ = int(dir.z);
+                
+                PX = posX;
+                PY = posY;
+                PZ = posZ;
+                DX = dirX;
+                DY = dirY;
+                DZ = dirZ;
+                
+                
+                smoothPZ = ((0.95 * smoothPZ) + (0.05 *PZ));
+
+                
+                diffX = PX-DX;
+                diffY = PY-DY;
+                
+                
+                smoothDiffX = ((0.85 * smoothDiffX) + (0.15 *diffX));
+                smoothDiffY = ((0.85 * smoothDiffY) + (0.15 *diffY));
+                
+                
+                //smoothValue = 0.95f * smoothValue + 0.05f * ard.getAnalog();
+
+                
 
 
                 
    //               float dd = float(dd);
 //               float dd =  ofNormalize(pos.x, -1, 1);
-                printf("posX%d  posY%d  posZ%d\n dirX%d  dirY%d dirZ%d\n", posX, posY, posZ, dirX, dirY, dirZ);
+//                printf("PX: %d  PY: %d  PZ: %d DX: %d  DY: %d DZ: %d diffX: %d diffY: %d\n", PX, PY, PZ, DX, DY, DZ, diffX, diffY);
+                
+                printf("PZ: %d diffX: %d diffY: %d smoothValue: %d\n", PZ, diffX, diffY, int(smoothValue*100));
 //                printf("diff x%d dif y %d  dif z%d\n", abs(pos.x)-abs(dir.x), abs(pos.y)-abs(dir.y), abs(pos.z)-abs(dir.z));
             }
         }
@@ -244,22 +286,25 @@ void testApp::draw(){
     
     
     
-    ofTranslate(ofGetWindowWidth()/2,ofGetWindowHeight()/2, -1000);
+    ofTranslate(ofGetWindowWidth()/2,ofGetWindowHeight()/2, -PZ); //centers everything
     
     /* we basically need a container for the translation -- translate to the head origin point, and then inside, perform the perspective translations
     */ 
     
+    int translateZ = mouseX;
     
-    ofTranslate(0,0,mouseX); //translates to the eyePoint -- needs to be positive
+//    ofTranslate(0,0,mouseX); //translates to the eyePoint -- needs to be positive
     
     
+    ofTranslate(0,0,smoothPZ);
     
-    ofRotateY(mouseY/(0.5*PI));
+    ofRotateY(smoothDiffX/3*PI);
+    ofRotateX(smoothDiffY/3*PI);
+    
+//    ofRotateY(mouseY/(0.5*PI));
 //    ofScale(1,1,sqrt(float(ofGetWindowWidth()/2)/mouseX));
     
-    //we need to double scale Z as the translate Z distance doubles 
-    
-    ofTranslate(0,0,-mouseX); //translates back to the default
+    ofTranslate(0,0,-smoothPZ); //translates back to the default
  
     
     /* angleDistanceFactor = int(abs(posZ)/angleDistanceAdjuster); 
@@ -306,9 +351,9 @@ void testApp::keyPressed(int key){
             
         case 'z': rotateZvalue+=10; break;
             
-        case 't': defaultVar++; break;
+        case 't': smoothValue+=0.01; break;
             
-        case 'g': defaultVar--; break;
+        case 'g': smoothValue-=0.01; break;
             
         case 'r': defaultVar++; break;
        
