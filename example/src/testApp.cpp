@@ -71,6 +71,11 @@ int DY;
 int DZ;
 int diffX;
 int diffY;
+int eyeDistance = 10; //change later to 7.5
+
+
+ostringstream controlString;     
+string controlStringToShow;
 
 float smoothPZ;
 
@@ -329,25 +334,37 @@ void testApp::drawReport() {
     ofPushMatrix();
 //    ofSetColor(255,255,255);
     char reportStr[1024];
-    ofDrawBitmapString(reportStr, 10, 10);
-    ofDrawBitmapString("still not time traveling. Surprise!", 500,500);
+    
+    /*  frameToShow = mostRecentFrame - timeOffsetFrames + 1;
+     ostringstream fileNameToLoad;     
+     fileNameToLoad << frameToShow << ".png";     
+     frameResult = fileNameToLoad.str(); 
+     pastImg.loadImage(ofToString(frameResult));
+     //                pastImg.loadImage(1.png);
+
+     */
+    
+    
+    ostringstream controlString;     
+    controlString << "eye Distance (r & f) " << eyeDistance;    
+    controlStringToShow = controlString.str(); 
+        
+//    ofDrawBitmapString(reportStr, 10, 10);
+    ofDrawBitmapString(ofToString(controlStringToShow), 0,0);
     ofPopMatrix();
 }
 //--------------------------------------------------------------
 void testApp::draw(){
     
-    topFb.begin();
-    ofClear(0, 0, 0, 1);
-    printf("we have passed clear\n");
-
-    //ofBackground(255,255,255);
-    //ofColor(red);
-    ofSetColor(255,0,0);  
-    ofRect(300, 300, 100, 100);
+    printf("eye distance (r & f) %d\n", eyeDistance);
     
+//    drawReport();
+
+    
+    ofViewport(0, 0, ofGetWindowWidth(), ofGetWindowHeight()/2); 
     ofPushMatrix();
 
-    /*
+    
     
     ofTranslate(fullWindowWidth/2,fullWindowHeight/2, -PZ); //centers everything
     
@@ -364,28 +381,34 @@ void testApp::draw(){
 //    
     ofTranslate(0,0,-smoothPZ); //translates back to the default
 
-    */
+    
     
     if (bDrawCloud) {
-//        ofPushMatrix();
-//        ofScale(1,.5);
-//        drawPointCloud();
-//        ofPopMatrix();
-        
-//        drawPoses();
+        drawPointCloud();
+        drawPoses();
     }
 //    myMesh->updateMesh();
-    drawReport();
 
     ofPopMatrix();
-    topFb.end();
     
+    ofViewport(0, ofGetWindowHeight()/2, ofGetWindowWidth(), ofGetWindowHeight()/2);
     
-    topFb.draw(0,0);
-    
-    //do bottom
-    
+    ofPushMatrix();
 
+    ofTranslate(fullWindowWidth/2,fullWindowHeight/2, -PZ); //centers everything
+    
+    ofTranslate(0,0,smoothPZ);
+    ofRotateY(smoothDiffX-eyeDistance/3*PI);
+    ofRotateX(smoothDiffY/3*PI);
+    
+    ofTranslate(0,0,-smoothPZ); //translates back to the default
+    
+    if (bDrawCloud) {
+        drawPointCloud();
+        drawPoses();
+    }
+
+    ofPopMatrix();
 
 
 }
@@ -410,9 +433,9 @@ void testApp::keyPressed(int key){
             
         case 'g': smoothVal-=0.01; break;
             
-        case 'r': defaultVar++; break;
+        case 'r': eyeDistance++; break;
        
-        case 'f': defaultVar--; break;
+        case 'f': eyeDistance--; break;
             
         case 'h': defaultVar--; break;
         
@@ -421,7 +444,7 @@ void testApp::keyPressed(int key){
 
     }
 
-//    myMesh->timeControl();
+    myMesh->timeControl();
 
 
 }
