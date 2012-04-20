@@ -3,6 +3,8 @@
 #include "ofMain.h"
 #include "ofxKinect.h"
 #include "ofxHeadPoseEstimator.h"
+#include "MeshMaker.h"
+
 //#include "ofxGrabCam.h"
 
 
@@ -17,6 +19,7 @@ class testApp : public ofBaseApp{
 		void setupEstimator();
 		//-----------------------
 		void drawPointCloud();
+//        void drawPastMesh();
         void drawPoses();
 		//-----------------------
         void calcAvgFPS();
@@ -33,5 +36,10 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 		//-----------------------
 		ofxKinect kinect;
+        ofFbo topFb;
+        ofFbo bottomFb;
+    
+    
 //		ofEasyCam easyCam;
+        MeshMaker* myMesh;
 };

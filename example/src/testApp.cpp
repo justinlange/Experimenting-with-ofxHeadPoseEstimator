@@ -1,4 +1,5 @@
 #include "testApp.h"
+#include "MeshMaker.h"
 
 using namespace std;
 using namespace cv;
@@ -56,6 +57,7 @@ int frameCount = 0;
 int lastMillis = 0;
 // draw / hide poincloud
 bool bDrawCloud = true;
+bool bPastMesh = false;
 
 int rotateXvalue = 0;
 int rotateYvalue = 0;
@@ -76,6 +78,11 @@ float smoothDiffX;
 float smoothDiffY;
 
 float smoothValue = 0.05;
+float smoothVal = 0.05;
+
+int fullWindowWidth;
+int fullWindowHeight;
+
 
 
 //float posX = 0;
@@ -98,10 +105,28 @@ void testApp::setup(){
 	kinect.setRegistration(true);
     kinect.init();
     kinect.open();
-    kinect.setDepthClipping(250,g_max_z);
+    kinect.setDepthClipping(500,g_max_z);
+    
+    // mesh.setKinect(&kinect);
 
     // setup the estimator
+    
+    myMesh = new MeshMaker;
+    
     setupEstimator();
+    
+    topFb = ofFbo();
+    bottomFb = ofFbo();
+    
+    topFb.allocate(ofGetScreenWidth(), ofGetScreenHeight()/2);
+    bottomFb.allocate(ofGetScreenWidth(), ofGetScreenHeight());
+    
+    fullWindowWidth = ofGetWindowWidth();
+    fullWindowHeight = ofGetWindowHeight();
+
+    
+    //above constructor contains default arguments, which do not have to be stated if the default is acceptable 
+    
 }
 //--------------------------------------------------------------
 void testApp::setupEstimator() {
@@ -134,10 +159,14 @@ void testApp::setupEstimator() {
 
 //--------------------------------------------------------------
 void testApp::update(){
+    
     kinect.update();
     
     
     if (kinect.isFrameNew()) {
+        
+//        myMesh->recordTime( &kinect ) ;   //& gets the pointer for the object
+        
         calcAvgFPS();
         updateCloud();
 
@@ -192,6 +221,26 @@ void testApp::updateCloud() {
 		}
 	}
 }
+
+//--------------------------------------------------------------
+//void testApp::drawPastMesh(){
+//    
+//    
+//    
+//    
+//    
+//    
+//    
+//    
+//    
+//
+//
+//
+//}
+
+
+
+
 //--------------------------------------------------------------
 void testApp::drawPointCloud() {
 	ofMesh mesh;
@@ -247,22 +296,21 @@ void testApp::drawPoses() {
                 DX = dirX;
                 DY = dirY;
                 DZ = dirZ;
-                
-                
-                smoothPZ = ((0.95 * smoothPZ) + (0.05 *PZ));
+                                
+                smoothPZ = (((1 - smoothVal) * smoothPZ) + (smoothVal * PZ));
 
                 
                 diffX = PX-DX;
                 diffY = PY-DY;
                 
                 
-                smoothDiffX = ((0.85 * smoothDiffX) + (0.15 *diffX));
-                smoothDiffY = ((0.85 * smoothDiffY) + (0.15 *diffY));
+                smoothDiffX = (((1-smoothVal) * smoothDiffX) + (smoothVal *diffX));
+                smoothDiffY = (((1-smoothVal) * smoothDiffY) + (smoothVal *diffY));
                 
                 
                 //smoothValue = 0.95f * smoothValue + 0.05f * ard.getAnalog();
 
-                
+                // why doesn't it work when I use a variable in place of 0.85 and .15?
 
 
                 
@@ -270,7 +318,7 @@ void testApp::drawPoses() {
 //               float dd =  ofNormalize(pos.x, -1, 1);
 //                printf("PX: %d  PY: %d  PZ: %d DX: %d  DY: %d DZ: %d diffX: %d diffY: %d\n", PX, PY, PZ, DX, DY, DZ, diffX, diffY);
                 
-                printf("PZ: %d diffX: %d diffY: %d smoothValue: %d\n", PZ, diffX, diffY, int(smoothValue*100));
+//                printf("PZ: %d diffX: %d diffY: %d smoothVal: %d\n", PZ, diffX, diffY, int(smoothVal*100));
 //                printf("diff x%d dif y %d  dif z%d\n", abs(pos.x)-abs(dir.x), abs(pos.y)-abs(dir.y), abs(pos.z)-abs(dir.z));
             }
         }
@@ -279,17 +327,31 @@ void testApp::drawPoses() {
 //--------------------------------------------------------------
 void testApp::drawReport() {
     ofPushMatrix();
-    ofSetColor(0);
+//    ofSetColor(255,255,255);
     char reportStr[1024];
     ofDrawBitmapString(reportStr, 10, 10);
+    ofDrawBitmapString("still not time traveling. Surprise!", 500,500);
     ofPopMatrix();
 }
 //--------------------------------------------------------------
 void testApp::draw(){
     
-    ofTranslate(ofGetWindowWidth()/2,ofGetWindowHeight()/2, -PZ); //centers everything
+    topFb.begin();
+    ofClear(0, 0, 0, 1);
+    printf("we have passed clear\n");
+
+    //ofBackground(255,255,255);
+    //ofColor(red);
+    ofSetColor(255,0,0);  
+    ofRect(300, 300, 100, 100);
     
-    /* we basically need a container for the translation -- translate to the head origin point, and then inside, perform the perspective translations */ 
+    ofPushMatrix();
+
+    /*
+    
+    ofTranslate(fullWindowWidth/2,fullWindowHeight/2, -PZ); //centers everything
+    
+    //we basically need a container for the translation -- translate to the head origin point and then inside, perform the perspective translations 
     
     int translateZ = mouseX;
     
@@ -297,27 +359,46 @@ void testApp::draw(){
     ofRotateY(smoothDiffX/3*PI);
     ofRotateX(smoothDiffY/3*PI);
     
-//    ofScale(1,1,sqrt(float(ofGetWindowWidth()/2)/mouseX));
-    
+//    
+////    ofScale(1,1,sqrt(float(ofGetWindowWidth()/2)/mouseX));
+//    
     ofTranslate(0,0,-smoothPZ); //translates back to the default
+
+    */
     
     if (bDrawCloud) {
 //        ofPushMatrix();
 //        ofScale(1,.5);
-        drawPointCloud();
+//        drawPointCloud();
 //        ofPopMatrix();
         
-        drawPoses();
+//        drawPoses();
     }
+//    myMesh->updateMesh();
     drawReport();
+
+    ofPopMatrix();
+    topFb.end();
+    
+    
+    topFb.draw(0,0);
+    
+    //do bottom
+    
+
+
+
 }
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
+    
     switch (key) {
 		case OF_KEY_UP: kTilt += 1; if (kTilt > 30) kTilt = 30; kinect.setCameraTiltAngle(kTilt); break;
         case OF_KEY_DOWN: kTilt -= 1; if (kTilt < -30) kTilt = -30; kinect.setCameraTiltAngle(kTilt); break;
         case 'm': bDrawCloud = !bDrawCloud; break;
+
+        case 'n': bPastMesh = !bPastMesh; break;
                         
         case 'x': rotateXvalue+=10; break;
             
@@ -325,9 +406,9 @@ void testApp::keyPressed(int key){
             
         case 'z': rotateZvalue+=10; break;
             
-        case 't': smoothValue+=0.01; break;
+        case 't': smoothVal+=0.01; break;
             
-        case 'g': smoothValue-=0.01; break;
+        case 'g': smoothVal-=0.01; break;
             
         case 'r': defaultVar++; break;
        
@@ -337,15 +418,12 @@ void testApp::keyPressed(int key){
         
         case 'j': defaultVar++; break;
 
-            
-
-
-
-
-            
-
 
     }
+
+//    myMesh->timeControl();
+
+
 }
 
 //--------------------------------------------------------------
