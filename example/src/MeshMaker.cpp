@@ -55,6 +55,7 @@ ofVec3f getVertexFromImg(ofImage& pastImg, int x, int y) {
 
 MeshMaker::MeshMaker() {
     
+    /*
     //---------recording the present-----------
     
     int  numberOfFramesToRecord = 320;
@@ -62,8 +63,9 @@ MeshMaker::MeshMaker() {
     bool kinectDisplayEnabled = false;
     int mostRecentFrame = 2;  //will make the first frame recorded "2"
     ostringstream fileNameToSave;
+    string path = "/Volumes/untitled/"; 
     int lastTime = 0;
-    int recordInterval = 100;
+    int recordInterval = 30;
     int currentTime = 0; 
     int picX=0; //short for pixelIndexCounterX
     int picY=0; //short for pixelIndexCounterY
@@ -84,10 +86,38 @@ MeshMaker::MeshMaker() {
     int startX = 0;
     int endBufferY = 0;
     int endBufferX = 0;
+     
+     */
     
     
-    presentImg.allocate(640, 320, OF_IMAGE_COLOR_ALPHA);
-    pastImg.allocate(640, 320, OF_IMAGE_COLOR_ALPHA);
+    //---------recording the present-----------
+    
+    numberOfFramesToRecord = 320;
+    recordingOn = false;
+    kinectDisplayEnabled = false;
+    mostRecentFrame = 2;  //will make the first frame recorded "2"
+    string path = "/Volumes/untitled/"; 
+    lastTime = 0;
+    recordInterval = 30;
+    currentTime = 0; 
+    picX=0; //short for pixelIndexCounterX
+    picY=0; //short for pixelIndexCounterY
+    numberOfFramesRecorded = 0;
+    recordReady = false;
+    
+    //---------showing the present or past-----------
+    
+    timeOffsetFrames = 0;
+    frameToShow = 2;
+    previousFrame = 0;
+    startY = 0;
+    startX = 0;
+    endBufferY = 0;
+    endBufferX = 0;
+    
+    
+    presentImg.allocate(640, 480, OF_IMAGE_COLOR_ALPHA);
+    pastImg.allocate(640, 480, OF_IMAGE_COLOR_ALPHA);
     ofSetVerticalSync(true);
     pastImg.loadImage("1.png"); //this means we'll always have to have one image to start!
     mesh.setMode(OF_PRIMITIVE_TRIANGLES); //rather than points
@@ -102,17 +132,8 @@ MeshMaker::MeshMaker() {
 
 
 
-void MeshMaker::updateMesh() {
+void MeshMaker::updateMesh(int _smoothPZ, int _smoothDiffX, int _smoothDiffY) {
     
-    ofScale(1, -1, 1); // "make y point down" I still don't understand what this means
-    pastImg.bind();
-    mesh.draw();  //
-    pastImg.unbind();
-    
-    
-}
-
-void MeshMaker::timeControl(){
     if (ofGetKeyPressed('p') || ofGetKeyPressed('o')){
         printf("we are viewing frame number: %d\n", timeOffsetFrames);
         if(ofGetKeyPressed('p')){
@@ -134,7 +155,103 @@ void MeshMaker::timeControl(){
             timeOffsetFrames = 0;
         }
     }    
-} 
+
+    
+    smoothPZ = _smoothPZ; 
+    smoothDiffX = _smoothDiffX;
+    smoothDiffY = _smoothDiffY;
+    
+    
+    printf("smoothPZ: %d  smoothDiffX: %d  smoothDiffY: %d\n", smoothPZ, smoothDiffX, smoothDiffY);
+    
+    mesh.clear();
+
+         
+    
+//    frameToShow = mostRecentFrame - timeOffsetFrames + 1;    
+    frameToShow = numberOfFramesRecorded - 1;     
+    ostringstream fileNameToLoad;     
+    fileNameToLoad << "/Volumes/Untitled/" << frameToShow << ".png";     
+    frameResult = fileNameToLoad.str(); 
+    pastImg.loadImage(ofToString(frameResult));
+    //                pastImg.loadImage(1.png);
+    
+    
+    
+    
+    for(int y = startY; y < height - endBufferY - skip; y += skip) {        
+        for(int x = startX; x < width - endBufferX - skip; x += skip) {
+            
+            /* 
+             this is kind of like quadrants
+             ofVec3f short for oF vector w/ 3 floats
+             vector in c++ could be (1) coming from stl or (2)
+             math -- a direction -- in either 2D or 3D space...
+             */
+            
+            ofVec2f nwi (x,y);
+            ofVec2f nei (x+skip, y);
+            ofVec2f sei (x+skip, y+skip);
+            ofVec2f swi (x, y+skip);
+            
+            ofVec3f nw = getVertexFromImg(pastImg, x, y);
+            ofVec3f ne = getVertexFromImg(pastImg, x + skip, y);
+            ofVec3f sw = getVertexFromImg(pastImg, x, y + skip);
+            ofVec3f se = getVertexFromImg(pastImg, x + skip, y + skip);
+            
+            /*
+             check for bad data i.e. making sure that nothing 
+             is zero, otherwise vertices point to front of screen
+             */
+            
+            if(nw != 0 && ne != 0 && sw != 0 && se != 0) {                 
+                addTexCoords(mesh, nwi, nei, sei, swi);
+                addFace(mesh, nw, ne, se, sw);                  
+            }
+        }
+    }
+    
+    ofPushMatrix();   
+    
+    ofScale(1, 1, -1); // "make y point down" I still don't understand what this means
+    ofTranslate(0,0,smoothPZ);
+    ofRotateY(smoothDiffX/3*PI);
+    ofRotateX(smoothDiffY/3*PI);
+    ofTranslate(0,0,-smoothPZ); //translates back to the default
+    pastImg.bind();
+    mesh.draw();  //
+    pastImg.unbind();
+   
+    ofPopMatrix();
+    
+}  
+        
+
+void MeshMaker::timeControl(){
+    
+    if(ofGetKeyPressed('q')) {
+        
+        printf("we are resetting the variables");
+
+        mostRecentFrame = 2;  //will make the first frame recorded "2"
+        numberOfFramesToRecord = 320;
+        recordingOn = false;
+        lastTime = 0;
+        recordInterval = 30;
+        currentTime = 0; 
+        picX=0; //short for pixelIndexCounterX
+        picY=0; //short for pixelIndexCounterY
+        numberOfFramesRecorded = 0;
+        recordReady = false;
+    
+    //---------showing the present or past-----------
+    
+        timeOffsetFrames = 0;
+        frameToShow = 2;
+        previousFrame = 0;
+    
+  } 
+}
     
     
 
@@ -145,7 +262,7 @@ void MeshMaker::recordTime ( ofxKinect* kinect ) {
     
     
     if(ofGetKeyPressed('z')){
-        printf("mostRecentFrame: %d numberOfFramesToRecord: %d mostRecentFrame: %d frameToShow: %d numberOfFramesRecorded:  %d currentTime: %d lastTime: %d \n",mostRecentFrame,numberOfFramesToRecord, mostRecentFrame, frameToShow, numberOfFramesRecorded, currentTime, lastTime);
+        printf("mostRecentFrame: %d numberOfFramesToRecord: %d frameToShow: %d numberOfFramesRecorded:  %d currentTime: %d lastTime: %d \n",mostRecentFrame,numberOfFramesToRecord, frameToShow, numberOfFramesRecorded, currentTime, lastTime);
 
     }
     
@@ -153,81 +270,44 @@ void MeshMaker::recordTime ( ofxKinect* kinect ) {
         
     if(ofGetKeyPressed(' ')) {
        recordingOn = true;
-                
-        
+        printf("recordingOn has been set to true");
     }
+    
+    
     if(ofGetKeyPressed('s')){
         recordingOn = false;
+        printf("recordingOn has been set to false");
+
     }
         
     if (recordingOn == true){
-        if(currentTime > lastTime + recordInterval) {
+        if(currentTime > (lastTime + recordInterval)) {
             lastTime = currentTime;
+
             if (mostRecentFrame < numberOfFramesToRecord){
                 mostRecentFrame = mostRecentFrame + 1;
+
+                printf("we are in loop to record depth frames");
 
                 ofPixels& depthPixels = kinect->getDepthPixelsRef();
                 ofPixels& colorPixels = kinect->getPixelsRef();
                 picX = 0;
                     
-                    for(int x = 0; x < 640; x=x+2) {
-                        picX++;
-                        picY=0;
-                        for(int y = 0; y < 480; y=y+2) {
-                            picY++;                
-                            ofColor color = colorPixels.getColor(x, y);
-                            ofColor depth = depthPixels.getColor(x, y);
-                            presentImg.setColor(picX, picY, ofColor(color, depth.getBrightness()));
-                        }
-                    }
+for(int x = 0; x < 640; x++) {
+        picX++;
+        picY=0;
+    for(int y = 0; y < 480; y++) {
+        picY++;                
+        ofColor color = colorPixels.getColor(x, y);
+        ofColor depth = depthPixels.getColor(x, y);
+        presentImg.setColor(picX, picY, ofColor(color, depth.getBrightness()));
+                }
+            }
                     ostringstream fileNameToSave;
-                    fileNameToSave << mostRecentFrame << ".png";
+                    fileNameToSave << "/Volumes/Untitled/" << mostRecentFrame << ".png";
                     string result = fileNameToSave.str();
                     presentImg.saveImage(result);
                     numberOfFramesRecorded++;
-                }
-                
-                frameToShow = mostRecentFrame - timeOffsetFrames + 1;
-                ostringstream fileNameToLoad;     
-                fileNameToLoad << frameToShow << ".png";     
-                frameResult = fileNameToLoad.str(); 
-                pastImg.loadImage(ofToString(frameResult));
-//                pastImg.loadImage(1.png);
-
-                
-                mesh.clear();
-
-                
-                for(int y = startY; y < height - endBufferY - skip; y += skip) {        
-                    for(int x = startX; x < width - endBufferX - skip; x += skip) {
-                        
-                        /* 
-                         this is kind of like quadrants
-                         ofVec3f short for oF vector w/ 3 floats
-                         vector in c++ could be (1) coming from stl or (2)
-                         math -- a direction -- in either 2D or 3D space...
-                         */
-                        
-                        ofVec2f nwi (x,y);
-                        ofVec2f nei (x+skip, y);
-                        ofVec2f sei (x+skip, y+skip);
-                        ofVec2f swi (x, y+skip);
-                        
-                        ofVec3f nw = getVertexFromImg(pastImg, x, y);
-                        ofVec3f ne = getVertexFromImg(pastImg, x + skip, y);
-                        ofVec3f sw = getVertexFromImg(pastImg, x, y + skip);
-                        ofVec3f se = getVertexFromImg(pastImg, x + skip, y + skip);
-                        
-                        /*
-                         check for bad data i.e. making sure that nothing 
-                         is zero, otherwise vertices point to front of screen
-                         */
-                        
-                        if(nw != 0 && ne != 0 && sw != 0 && se != 0) {                 
-                            addTexCoords(mesh, nwi, nei, sei, swi);
-                            addFace(mesh, nw, ne, se, sw);                  
-                        }
-                    }
                 }
             }
         }         

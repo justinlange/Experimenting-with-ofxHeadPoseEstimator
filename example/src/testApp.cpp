@@ -164,13 +164,15 @@ void testApp::setupEstimator() {
 
 //--------------------------------------------------------------
 void testApp::update(){
-    
+  
+    drawPoses();
+
     kinect.update();
     
     
     if (kinect.isFrameNew()) {
         
-//        myMesh->recordTime( &kinect ) ;   //& gets the pointer for the object
+        myMesh->recordTime( &kinect ) ;   //& gets the pointer for the object
         
         calcAvgFPS();
         updateCloud();
@@ -274,12 +276,12 @@ void testApp::drawPointCloud() {
 
 //--------------------------------------------------------------
 void testApp::drawPoses() {
-   ofPushMatrix();
+//   ofPushMatrix();
 // the projected points are 'upside down' and 'backwards'
-	ofScale(1, 1, -1);	
-    ofTranslate(0, 0, -1000); // center the points a bit
-    ofSetColor(0,0,255);
-    glLineWidth(3);
+//	ofScale(1, 1, -1);	
+//    ofTranslate(0, 0, -1000); // center the points a bit
+//    ofSetColor(0,0,255);
+//    glLineWidth(3);
    
     if(g_means.size()>0) {
             for(unsigned int i=0;i<g_means.size();++i){
@@ -287,7 +289,7 @@ void testApp::drawPoses() {
                 ofVec3f dir = ofVec3f(0,0,-150);
                 dir.rotate(g_means[i][3], g_means[i][4], g_means[i][5]);
                 dir += pos;
-                ofLine(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z);
+//                ofLine(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z);
                 int posX = int(pos.x);
                 int posY = int(pos.y);
                 int posZ = int(pos.z);
@@ -327,7 +329,7 @@ void testApp::drawPoses() {
 //                printf("diff x%d dif y %d  dif z%d\n", abs(pos.x)-abs(dir.x), abs(pos.y)-abs(dir.y), abs(pos.z)-abs(dir.z));
             }
         }
-	ofPopMatrix();
+//	ofPopMatrix();
 }
 //--------------------------------------------------------------
 void testApp::drawReport() {
@@ -356,61 +358,78 @@ void testApp::drawReport() {
 //--------------------------------------------------------------
 void testApp::draw(){
     
-    printf("eye distance (r & f) %d\n", eyeDistance);
+     
+//ofTranslate(fullWindowWidth/2,fullWindowHeight/2); 
+//    ofPushMatrix();    
+    
+//    printf("eye distance (r & f) %d\n", eyeDistance);
     
 //    drawReport();
+    
+    
+//    ofViewport(0, 0, ofGetWindowWidth(), ofGetWindowHeight()/2); 
+//    ofPushMatrix();    
+//    ofTranslate(fullWindowWidth/2,fullWindowHeight/2, -PZ); //centers everything
+    
+    //we basidrawcally need a container for the translation -- translate to the head origin point and then inside, perform the perspective translations 
+    
+//    int translateZ = mouseX;
+//    
+//    ofTranslate(0,0,smoothPZ);
+//    ofRotateY(smoothDiffX/3*PI);
+//    ofRotateX(smoothDiffY/3*PI);
+//    ofTranslate(0,0,-smoothPZ); //translates back to the default
+    
+//        if (kinect.isFrameNew()) {}
+    
+    
+    
+    easyCam.begin();
+    
+    myMesh->updateMesh(smoothPZ, smoothDiffX, smoothDiffY);
+    
+//    ofPopMatrix();
+//    easyCam.end();
+       
+    
+//    ofPopMatrix();
 
-    
-    ofViewport(0, 0, ofGetWindowWidth(), ofGetWindowHeight()/2); 
-    ofPushMatrix();
 
-    
-    
-    ofTranslate(fullWindowWidth/2,fullWindowHeight/2, -PZ); //centers everything
-    
-    //we basically need a container for the translation -- translate to the head origin point and then inside, perform the perspective translations 
-    
-    int translateZ = mouseX;
-    
-    ofTranslate(0,0,smoothPZ);
-    ofRotateY(smoothDiffX/3*PI);
-    ofRotateX(smoothDiffY/3*PI);
-    
 //    
 ////    ofScale(1,1,sqrt(float(ofGetWindowWidth()/2)/mouseX));
 //    
-    ofTranslate(0,0,-smoothPZ); //translates back to the default
+
 
     
-    
-    if (bDrawCloud) {
-        drawPointCloud();
-        drawPoses();
-    }
-//    myMesh->updateMesh();
+//    if (bDrawCloud) {
+////        drawPointCloud();
+//    }
 
-    ofPopMatrix();
+
+
     
-    ofViewport(0, ofGetWindowHeight()/2, ofGetWindowWidth(), ofGetWindowHeight()/2);
-    
+ /*
+  
+    ofViewport(0, ofGetWindowHeight()/2, ofGetWindowWidth(), ofGetWindowHeight()/2);    
     ofPushMatrix();
-
     ofTranslate(fullWindowWidth/2,fullWindowHeight/2, -PZ); //centers everything
-    
     ofTranslate(0,0,smoothPZ);
     ofRotateY(smoothDiffX-eyeDistance/3*PI);
     ofRotateX(smoothDiffY/3*PI);
     
     ofTranslate(0,0,-smoothPZ); //translates back to the default
+*/    
+//    if (bDrawCloud) {
+//        drawPointCloud();
+//        drawPoses();
+//    }
+
+    easyCam.end();
     
-    if (bDrawCloud) {
-        drawPointCloud();
-        drawPoses();
-    }
-
-    ofPopMatrix();
+//    ofPopMatrix();
 
 
+    
 }
 
 //--------------------------------------------------------------
@@ -429,9 +448,9 @@ void testApp::keyPressed(int key){
             
         case 'z': rotateZvalue+=10; break;
             
-        case 't': smoothVal+=0.01; break;
-            
-        case 'g': smoothVal-=0.01; break;
+//        case 't': smoothVal+=0.01; break;
+//            
+//        case 'g': smoothVal-=0.01; break;
             
         case 'r': eyeDistance++; break;
        

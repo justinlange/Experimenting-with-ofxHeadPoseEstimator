@@ -40,6 +40,6 @@ class testApp : public ofBaseApp{
         ofFbo bottomFb;
     
     
-//		ofEasyCam easyCam;
+		ofEasyCam easyCam;
         MeshMaker* myMesh;
 };

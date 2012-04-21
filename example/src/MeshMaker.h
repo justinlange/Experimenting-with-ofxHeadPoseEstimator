@@ -12,15 +12,24 @@ public:
     MeshMaker();
     
     void recordTime( ofxKinect* kinect );
-    void updateMesh();
+    void updateMesh( int _smoothPZ, int _smoothDiffX, int _smoothDiffY );
     void setupMesh();
     void exit();
     void timeControl();
+    
+
 	
 //    ofxKinect *kinect;
     ofImage presentImg;
     ofImage pastImg;
     ofMesh mesh;
+    
+    //---------variables to pass in to control the mesh---
+    
+    int smoothPZ;
+    int smoothDiffX;
+    int smoothDiffY;
+    
     
     int lastTime;
     int recordInterval;
